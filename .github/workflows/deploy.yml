@@ -1,16 +1,24 @@
 ﻿name: Deploy Ronda
 on: [push, workflow_dispatch]
 permissions: { contents: read, pages: write, id-token: write }
+concurrency: { group: "ronda-deploy", cancel-in-progress: false }
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20', cache: 'yarn' }
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npm run build
+      - run: if (!(Test-Path out)) { Write-Host "❌ out/ missing"; exit 1 }
+        shell: pwsh
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with: { path: out }
       - uses: actions/deploy-pages@v4
+        id: deployment
+      - run: Write-Host "🎉 Ronda en ligne : ${{ steps.deployment.outputs.page_url }}"
+        if: success()
+        shell: pwsh
