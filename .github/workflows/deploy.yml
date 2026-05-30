@@ -1,10 +1,11 @@
 ﻿name: Deploy Ronda
 on: [push, workflow_dispatch]
 permissions: { contents: read, pages: write, id-token: write }
-concurrency: { group: "ronda-deploy", cancel-in-progress: false }
+concurrency: { group: "pages", cancel-in-progress: false }
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
     steps:
       - uses: actions/checkout@v4
@@ -12,6 +13,7 @@ jobs:
         with: { node-version: '20', cache: 'npm' }
       - run: npm ci
       - run: npm run build
+        env: { NEXT_TELEMETRY_DISABLED: 1 }
       - run: if (!(Test-Path out)) { Write-Host "❌ out/ missing"; exit 1 }
         shell: pwsh
       - uses: actions/configure-pages@v4
@@ -19,6 +21,3 @@ jobs:
         with: { path: out }
       - uses: actions/deploy-pages@v4
         id: deployment
-      - run: Write-Host "🎉 Ronda en ligne : ${{ steps.deployment.outputs.page_url }}"
-        if: success()
-        shell: pwsh
