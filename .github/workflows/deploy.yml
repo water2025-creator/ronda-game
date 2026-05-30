@@ -1,0 +1,33 @@
+﻿name: 🚀 Déploiement Ronda - GitHub Pages
+on:
+  push: { branches: [ main ] }
+  workflow_dispatch:
+concurrency:
+  group: "ronda-ci-pipeline"
+  cancel-in-progress: false
+permissions: { contents: read, pages: write, id-token: write }
+jobs:
+  build-and-deploy:
+    name: 🎴 Build & Deploy Ronda
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'yarn', cache-dependency-path: 'yarn.lock' }
+      - run: yarn install --frozen-lockfile
+        timeout-minutes: 2
+      - run: yarn build
+        timeout-minutes: 5
+        env: { NODE_ENV: production }
+      - run: "if (!(Test-Path out)) { Write-Host '❌ out/ missing'; exit 1 }"
+        shell: pwsh
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: out }
+      - uses: actions/deploy-pages@v4
+        id: deployment
+      - run: "Write-Host '🎉 Ronda déployé : ${{ steps.deployment.outputs.page_url }}'"
+        if: success()
+        shell: pwsh
