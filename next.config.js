@@ -1,8 +1,10 @@
 ﻿/** @type {import('next').NextConfig} */
-const nextConfig = { 
-  output: 'export', 
-  images: { unoptimized: true }, 
+const nextConfig = {
+  output: 'export',
+  basePath: '/ronda-game',
+  assetPrefix: '/ronda-game/',
+  images: { unoptimized: true },
   trailingSlash: true,
-  basePath: '/ronda-game'
-};
-module.exports = nextConfig;
+}
+
+module.exports = nextConfig
